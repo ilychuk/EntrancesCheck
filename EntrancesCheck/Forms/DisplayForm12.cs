@@ -15,7 +15,12 @@ namespace EntrancesCheck.Forms
 {
     public partial class DisplayForm12 : Form
     {
-        private DateTime _date;
+        /// <summary>
+        /// Код направления события. 1 - вход, 2 - выход
+        /// </summary>
+        private int _direction = 0;
+
+        private readonly DateTime _date;
         /// <summary>
         /// ID события с которого начинается получение очередной порции событий
         /// </summary>
@@ -29,7 +34,7 @@ namespace EntrancesCheck.Forms
         /// <summary>
         /// Массив счетчиков на основе которых определяется время для отображения событий о проходе
         /// </summary>
-        private List<int> DevicesCounters = new List<int>();
+        private readonly List<int> DevicesCounters = new List<int>();
         /// <summary>
         /// Массив элементов класса GroupBox
         /// </summary>
@@ -37,26 +42,34 @@ namespace EntrancesCheck.Forms
         /// <summary>
         /// Работа с кадровским сервером
         /// </summary>
-        private WorkWithKserv _pers = new WorkWithKserv();
+        private readonly WorkWithKserv _pers = new WorkWithKserv();
         /// <summary>
         /// Работа с сервером СКД
         /// </summary>
-        private WorkWithFirebird _skd = new WorkWithFirebird();
+        private readonly WorkWithFirebird _skd = new WorkWithFirebird();
+
+        private readonly WorkWithMySql _mySql = new WorkWithMySql();
         /// <summary>
         /// Список Контроллеров которые обрабатываются на данном компьютере
         /// </summary>
         private List<Device> _devicesList = new List<Device>();
 
-        private IMessageService _message = new MessageService();
+        /// <summary>
+        /// Класс сообщений
+        /// </summary>
+        private readonly IMessageService _message = new MessageService();
         public DisplayForm12()
         {
             InitializeComponent();
             _date = DateTime.Now;
             SetDeviceList();
-            Timer timer = new Timer();
-            timer.Interval = 500;
+            Timer timer = new Timer {Interval = 500};
             timer.Tick += CheckEvent;
-            _idEvent = DataTableToInt(_skd.GetFbData("select MAX(id_reg) from reg_events"));
+         //_idEvent = DataTableToInt(_skd.GetFbData("SELECT next VALUE FOR GEN_REG_EVENTS_ID FROM RDB$DATABASE"))-1;
+
+         // MySQL
+          _idEvent = DataTableToInt((_mySql.GetDataTable("SELECT max(id)  FROM perco_4.event")));
+          //_idEvent = 381;
             _counter = 0;
             timer.Start();
            
@@ -68,23 +81,33 @@ namespace EntrancesCheck.Forms
             // Проверяем не пора ли скрыть фото
             CheckPhotoTime();
 
-            DataTable dt = _skd.GetFbData(string.Format(
-               @"select t.id_reg, t.staff_id, t.configs_tree_id_resource, s.TABEL_ID " +
-               "from reg_events t, staff s " +
-               "where t.STAFF_ID>0 " +
-                "and t.STAFF_ID = s.ID_STAFF " +
-                "and t.id_reg>{0}", _idEvent));
+            DataTable dt = _mySql.GetDataTable(string.Format(
+                "SELECT e.id, e.user_id, e.device_id, e.resource_number, us.tabel_number \n " +
+                "FROM perco_4.event e, perco_4.user_staff us \n " +
+                "where e.user_id=us.user_id and \n " +
+                    "\t e.identifier is not null and \n " +
+                    "\t e.id > {0}",_idEvent));
+
+            //DataTable dt = _skd.GetFbData(string.Format(
+            //   @"select t.id_reg, t.staff_id, t.configs_tree_id_resource, s.TABEL_ID " +
+            //   "from reg_events t, staff s " +
+            //   "where t.STAFF_ID>0 " +
+            //    "and t.STAFF_ID = s.ID_STAFF " +
+            //    "and t.id_reg>{0}", _idEvent));
             foreach (DataRow row in dt.Rows)
             {
                 _i = 0;
                 foreach (Device device in _devicesList)
                 {
-                    if (row["configs_tree_id_resource"].ToString() == device.DeviceId.ToString())
+                    String zzz = row["device_id"].ToString() + "-" + row["resource_number"].ToString();
+
+                    // if (row["configs_tree_id_resource"].ToString() == device.DeviceId.ToString())
+                    if (row["device_id"].ToString() == device.DeviceId.ToString() && row["resource_number"].ToString() == _direction.ToString())
                     {
                         var picture = _groupBoxes[_i].Controls.OfType<PictureBox>()
                                         .Where(c => c.Name.StartsWith("pictureBox"))
                                         .ToList();
-                        picture[0].Image = GetPhotoFromPers(row["TABEL_ID"].ToString());
+                        picture[0].Image = GetPhotoFromPers(row["TABEL_NUMBER"].ToString());
                         picture[0].Refresh();
                         DevicesCounters[_i] = _counter;
                     }
@@ -92,7 +115,8 @@ namespace EntrancesCheck.Forms
                 }
                 
                 
-                _idEvent=int.Parse(row["id_reg"].ToString());
+                //_idEvent=int.Parse(row["id_reg"].ToString());
+                _idEvent = int.Parse(row["id"].ToString());
             }
 
             long tick = DateTime.Now.Ticks - _date.Ticks;
@@ -143,7 +167,9 @@ namespace EntrancesCheck.Forms
                      "652670," +
                      "656304," +
                      "38463";
-                    _devicesList = GetInputReadersList(devices);
+                     _devicesList = GetReadersList(devices);
+                        //GetInputReadersList(devices);
+                     _direction = 1;
                     break;
 
                 case "MONITOR03": // 13-23 - выход
@@ -160,7 +186,9 @@ namespace EntrancesCheck.Forms
                      "663572," +
                      "71169," +
                      "8647";
-                    _devicesList = GetInputReadersList(devices);
+                     _devicesList = GetReadersList(devices);
+                     _direction = 1;
+                        //GetInputReadersList(devices);
                     break;
 
                 case "MONITOR02": // 1-12 - вход
@@ -177,7 +205,9 @@ namespace EntrancesCheck.Forms
                      "652670," +
                      "656304," +
                      "38463";
-                    _devicesList = GetOutputReadersList(devices);
+                    _devicesList = GetReadersList(devices);
+                    _direction = 2;
+                        //GetOutputReadersList(devices);
                     break;
 
                 case "MONITOR01": // 13-23 - вход
@@ -194,7 +224,9 @@ namespace EntrancesCheck.Forms
                      "663572," +
                      "71169," +
                      "8647";
-                    _devicesList = GetOutputReadersList(devices);
+                    _devicesList = GetReadersList(devices);
+                    _direction = 2;
+                        //GetOutputReadersList(devices);
                     break;
 
                  case "MONITOR05": // 13-23 - вход
@@ -211,12 +243,13 @@ namespace EntrancesCheck.Forms
                          "663572," +
                          "71169," +
                          "8647";
-                     _devicesList = GetOutputReadersList(devices);
-                     break;
+                     _devicesList = GetReadersList(devices);
+                     _direction = 1;
+                    break;
 
                 case "BSKD04": // 1-12 - вход
                     devices =
-                        @"42097," +
+                        @"2," +
                         "45731," +
                         "659938," +
                         "49365," +
@@ -229,6 +262,7 @@ namespace EntrancesCheck.Forms
                         "71169," +
                         "8647";
                     _devicesList = GetInputReadersList(devices);
+                    _direction = 1;
                     break;
                 default:
                     _message.ShowError(@"Данный компьютер неизвестен");
@@ -252,7 +286,7 @@ namespace EntrancesCheck.Forms
                             .ToList();
              _i = 0;
             foreach (GroupBox groupBox in _groupBoxes)
-            {
+            { 
                 if (_i < _devicesList.Count)
                 {
                     var labels = groupBox.Controls.OfType<Label>().Where(c => c.Name.StartsWith("label")).ToList();
@@ -300,21 +334,54 @@ namespace EntrancesCheck.Forms
 
 
 
-        
+        public List<Device> GetReadersList(string devicesList)
+        {
+            List<Device> readersList = new List<Device>();
+
+            DataTable dt = _mySql.GetDataTable(string.Format("SELECT t.id, t.name \n " +
+                                                             " FROM perco_4.device t \n " +
+                                                             " where t.id in ({0}) and  \n " +
+                                                             " order by t.name", devicesList));
+            foreach (DataRow row in dt.Rows)
+            {
+                readersList.Add(new Device()
+                    {
+                        DeviceId = int.Parse(row["id"].ToString()),
+                        DeviceName = row["name"].ToString()
+                    }
+                );
+            }
+            return readersList;
+        }
+
+
+
+
+
         public List<Device> GetInputReadersList(string devicesList)
         {
             List<Device> readersList = new List<Device>();
-            DataTable dt = _skd.GetFbData(string.Format(
-                @"select t.INPUT_READER_CONFIG_ID, c.DISPLAY_NAME " +
-                 "from areas_controllers t, configs_tree c " +
-                 "where  t.CONFIG_TREE_ID in ({0}) " +
-                    "and t.INPUT_READER_CONFIG_ID>0 " +
-                    "and t.CONFIG_TREE_ID=c.ID_CONFIGS_TREE " +
-                 "order by c.DISPLAY_NAME", devicesList));
+
+            DataTable dt = _mySql.GetDataTable(string.Format("SELECT t.id, t.name \n " +
+                                                             " FROM perco_4.device t \n " +
+                                                             " where t.id in ({0}) \n " +
+                                                             //"and  \n " +
+                                                              //  " \t t.resource_number=1 \n " +
+                                                             " order by t.name", devicesList));
+            
+            
+            
+            //DataTable dt = _skd.GetFbData(string.Format(
+            //    @"select t.INPUT_READER_CONFIG_ID, c.DISPLAY_NAME " +
+            //     "from areas_controllers t, configs_tree c " +
+            //     "where  t.CONFIG_TREE_ID in ({0}) " +
+            //        "and t.INPUT_READER_CONFIG_ID>0 " +
+            //        "and t.CONFIG_TREE_ID=c.ID_CONFIGS_TREE " +
+            //     "order by c.DISPLAY_NAME", devicesList));
             foreach (DataRow row in dt.Rows)
             {
-                readersList.Add(new Device() { DeviceId = int.Parse(row["INPUT_READER_CONFIG_ID"].ToString()),
-                    DeviceName = row["DISPLAY_NAME"].ToString()}
+                readersList.Add(new Device() { DeviceId = int.Parse(row["id"].ToString()),
+                    DeviceName = row["name"].ToString()}
                     );
             }
             return readersList;
@@ -323,13 +390,23 @@ namespace EntrancesCheck.Forms
         public List<Device> GetOutputReadersList(string devicesList)
         {
             List<Device> readersList = new List<Device>();
-            DataTable dt = _skd.GetFbData(string.Format(
-                @"select t.OUTPUT_READER_CONFIG_ID, c.DISPLAY_NAME " +
-                 "from areas_controllers t, configs_tree c " +
-                 "where  t.CONFIG_TREE_ID in ({0}) " +
-                    "and t.OUTPUT_READER_CONFIG_ID>0 " +
-                    "and t.CONFIG_TREE_ID=c.ID_CONFIGS_TREE " +
-                 "order by c.DISPLAY_NAME", devicesList));
+
+
+            DataTable dt = _mySql.GetDataTable(string.Format("SELECT t.id, t.name \n " +
+                                                             " FROM perco_4.device t \n " +
+                                                             " where t.id in ({0}) \n " +
+                                                             //" and  \n " +
+                                                             //" \t t.resource_number=2 \n " +
+                                                             " order by t.name", devicesList));
+
+
+            //DataTable dt = _skd.GetFbData(string.Format(
+            //    @"select t.OUTPUT_READER_CONFIG_ID, c.DISPLAY_NAME " +
+            //     "from areas_controllers t, configs_tree c " +
+            //     "where  t.CONFIG_TREE_ID in ({0}) " +
+            //        "and t.OUTPUT_READER_CONFIG_ID>0 " +
+            //        "and t.CONFIG_TREE_ID=c.ID_CONFIGS_TREE " +
+            //     "order by c.DISPLAY_NAME", devicesList));
             foreach (DataRow row in dt.Rows)
             {
                 readersList.Add(new Device()
@@ -357,8 +434,8 @@ namespace EntrancesCheck.Forms
 
             foreach (GroupBox groupBox in _groupBoxes)
             {
-                groupBox.Height = groupBox.Height + _resizeIndex;
-                groupBox.Width = groupBox.Width + _resizeIndex;
+                groupBox.Height += _resizeIndex;
+                groupBox.Width += _resizeIndex;
                 //ResizeElementsGroupBox(groupBox);
             }
 

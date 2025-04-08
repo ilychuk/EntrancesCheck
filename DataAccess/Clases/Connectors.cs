@@ -1,6 +1,6 @@
-﻿using System.Data.OleDb;
-using FirebirdSql.Data.FirebirdClient;
+﻿using FirebirdSql.Data.FirebirdClient;
 using Oracle.ManagedDataAccess.Client;
+using MySql.Data.MySqlClient;
 
 namespace DataAccess.Clases
 {
@@ -12,12 +12,18 @@ namespace DataAccess.Clases
         /// <returns>Переменная подключения</returns>
         public static FbConnection GetFirebirdConnection()
         {
-            FbConnectionStringBuilder fbCon = new FbConnectionStringBuilder();
-            fbCon.Charset = "WIN1251"; //используемая кодировка
-            fbCon.UserID = @"sysdba"; //логин
-            fbCon.Password = @"t2vkrc0fa"; //пароль
-            fbCon.Database = @"ACSServ:C:\Program Files (x86)\PERCo\PERCo-S-20\BASE\SCD17K.FDB"; //путь к файлу базы данных
-            fbCon.ServerType = 0;
+            FbConnectionStringBuilder fbCon = new FbConnectionStringBuilder
+            {
+                Charset = "WIN1251",
+                UserID = @"sysdba",
+                Password = @"t2vkrc0fa",
+                Database = @"ACSServ:C:\Program Files (x86)\PERCo\PERCo-S-20\BASE\SCD17K.FDB",
+                ServerType = 0
+            };
+            //используемая кодировка
+            //логин
+            //пароль
+            //путь к файлу базы данных
             return new FbConnection(fbCon.ToString());
         }
         /// <summary>
@@ -31,7 +37,7 @@ namespace DataAccess.Clases
 
         public static OracleConnection GetOracleConnection()
         {
-            string connectString = string.Format(@"Data Source=(DESCRIPTION=
+            string connectString = @"Data Source=(DESCRIPTION=
     (ADDRESS=
       (PROTOCOL=TCP)
       (HOST=dbkserv64)
@@ -40,9 +46,14 @@ namespace DataAccess.Clases
     (CONNECT_DATA=
       (SID=kadr)
     )
-    );User ID = crew;Password = brivzoup38901");
+    );User ID = crew;Password = brivzoup38901";
 
             return new OracleConnection(connectString);
+        }
+
+        public static MySqlConnection GetMySqlConnection()
+        {
+            return new MySqlConnection("server=10.111.0.124;user id=user_p;database=perco_4;port=49001;password=1111");
         }
     }
 }

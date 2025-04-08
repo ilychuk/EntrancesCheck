@@ -27,7 +27,7 @@ namespace DataAccess.Clases
                 Connection.Open();
                 oracleDataAdapter.Fill(dt);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //WorkWithFile.WriteToFile(e.Message);
                 // MessageBox.Show(e.Message);
@@ -82,7 +82,7 @@ namespace DataAccess.Clases
                 OracleDataReader rdr = command.ExecuteReader();
                 dt.Load(rdr);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //WorkWithFile.WriteToFile(e.Message);
                 // MessageBox.Show(e.Message);

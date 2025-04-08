@@ -26,7 +26,7 @@ namespace DataAccess.Clases
                 _fbConnection.Open();
                 fbdataadapter.Fill(dt);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //MessageBox.Show(e.ToString(), @"Внимание!!!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 //return null;
