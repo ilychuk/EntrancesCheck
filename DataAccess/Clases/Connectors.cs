@@ -37,19 +37,34 @@ namespace DataAccess.Clases
 
         public static OracleConnection GetOracleConnection()
         {
-            string connectString = @"Data Source=(DESCRIPTION=
-    (ADDRESS=
-      (PROTOCOL=TCP)
-      (HOST=dbkserv64)
-      (PORT=1521)
-    )
-    (CONNECT_DATA=
-      (SID=kadr)
-    )
-    );User ID = crew;Password = brivzoup38901";
+            string connectString = string.Format(
+                "User Id={0};Password={1};Data Source=  " +
+                "(DESCRIPTION = " +
+                "(ADDRESS = (PROTOCOL = TCP)(HOST = 172.16.0.94)(PORT = 1521)) " +
+                "(CONNECT_DATA = (SID = HR2)))", "S.ILUCHIK", "111");
 
             return new OracleConnection(connectString);
         }
+
+
+    //    public static OracleConnection GetOracleConnection()
+    //    {
+    //        string connectString = @"Data Source=(DESCRIPTION=
+    //(ADDRESS=
+    //  (PROTOCOL=TCP)
+    //  (HOST=dbkserv64)
+    //  (PORT=1521)
+    //)
+    //(CONNECT_DATA=
+    //  (SID=kadr)
+    //)
+    //);User ID = crew;Password = brivzoup38901";
+
+    //        return new OracleConnection(connectString);
+    //    }
+
+
+
 
         public static MySqlConnection GetMySqlConnection()
         {

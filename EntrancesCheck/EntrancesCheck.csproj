@@ -26,7 +26,7 @@
     <MapFileExtensions>true</MapFileExtensions>
     <UpdateUrl>\\aserv02\boup\EntrancesCheck\</UpdateUrl>
     <MinimumRequiredVersion>1.0.0.38</MinimumRequiredVersion>
-    <ApplicationRevision>6</ApplicationRevision>
+    <ApplicationRevision>9</ApplicationRevision>
     <ApplicationVersion>2.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
@@ -76,11 +76,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
@@ -159,6 +156,7 @@
     <Content Include="Resources\logo_2.jpg" />
     <Content Include="Resources\logo_2.png" />
     <Content Include="Resources\Logo_Desctop.jpg" />
+    <None Include="Resources\MTZ DESIGN_логотип_14.04.2025.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -65,10 +65,10 @@ namespace EntrancesCheck.Forms
             SetDeviceList();
             Timer timer = new Timer {Interval = 500};
             timer.Tick += CheckEvent;
-         //_idEvent = DataTableToInt(_skd.GetFbData("SELECT next VALUE FOR GEN_REG_EVENTS_ID FROM RDB$DATABASE"))-1;
+         _idEvent = DataTableToInt(_skd.GetFbData("SELECT next VALUE FOR GEN_REG_EVENTS_ID FROM RDB$DATABASE"))-1;
 
          // MySQL
-          _idEvent = DataTableToInt((_mySql.GetDataTable("SELECT max(id)  FROM perco_4.event")));
+         // _idEvent = DataTableToInt((_mySql.GetDataTable("SELECT max(id)  FROM perco_4.event")));
           //_idEvent = 381;
             _counter = 0;
             timer.Start();
@@ -81,42 +81,57 @@ namespace EntrancesCheck.Forms
             // Проверяем не пора ли скрыть фото
             CheckPhotoTime();
 
-            DataTable dt = _mySql.GetDataTable(string.Format(
-                "SELECT e.id, e.user_id, e.device_id, e.resource_number, us.tabel_number \n " +
-                "FROM perco_4.event e, perco_4.user_staff us \n " +
-                "where e.user_id=us.user_id and \n " +
-                    "\t e.identifier is not null and \n " +
-                    "\t e.id > {0}",_idEvent));
+            // MySQL
+            //DataTable dt = _mySql.GetDataTable(string.Format(
+            //    "SELECT e.id, e.user_id, e.device_id, e.resource_number, us.tabel_number \n " +
+            //    "FROM perco_4.event e, perco_4.user_staff us \n " +
+            //    "where e.user_id=us.user_id and \n " +
+            //        "\t e.identifier is not null and \n " +
+            //        "\t e.id > {0}",_idEvent));
 
-            //DataTable dt = _skd.GetFbData(string.Format(
-            //   @"select t.id_reg, t.staff_id, t.configs_tree_id_resource, s.TABEL_ID " +
-            //   "from reg_events t, staff s " +
-            //   "where t.STAFF_ID>0 " +
-            //    "and t.STAFF_ID = s.ID_STAFF " +
-            //    "and t.id_reg>{0}", _idEvent));
+            DataTable dt = _skd.GetFbData(string.Format(
+               @"select t.id_reg, t.staff_id, t.configs_tree_id_resource, s.TABEL_ID " +
+               "from reg_events t, staff s " +
+               "where t.STAFF_ID>0 " +
+                "and t.STAFF_ID = s.ID_STAFF " +
+                "and t.id_reg>{0}", _idEvent));
             foreach (DataRow row in dt.Rows)
             {
                 _i = 0;
                 foreach (Device device in _devicesList)
                 {
-                    String zzz = row["device_id"].ToString() + "-" + row["resource_number"].ToString();
+                   
 
-                    // if (row["configs_tree_id_resource"].ToString() == device.DeviceId.ToString())
-                    if (row["device_id"].ToString() == device.DeviceId.ToString() && row["resource_number"].ToString() == _direction.ToString())
-                    {
-                        var picture = _groupBoxes[_i].Controls.OfType<PictureBox>()
-                                        .Where(c => c.Name.StartsWith("pictureBox"))
-                                        .ToList();
-                        picture[0].Image = GetPhotoFromPers(row["TABEL_NUMBER"].ToString());
-                        picture[0].Refresh();
-                        DevicesCounters[_i] = _counter;
-                    }
+                     if (row["configs_tree_id_resource"].ToString() == device.DeviceId.ToString())
+                     {
+                         var picture = _groupBoxes[_i].Controls.OfType<PictureBox>()
+                             .Where(c => c.Name.StartsWith("pictureBox"))
+                             .ToList();
+                         picture[0].Image = GetPhotoFromPers(row["TABEL_ID"].ToString());
+                         picture[0].Refresh();
+                         DevicesCounters[_i] = _counter;
+                     }
+
+
+
+                    // MySQL
+                    //if (row["device_id"].ToString() == device.DeviceId.ToString() && row["resource_number"].ToString() == _direction.ToString())
+                    //{
+                    //    var picture = _groupBoxes[_i].Controls.OfType<PictureBox>()
+                    //                    .Where(c => c.Name.StartsWith("pictureBox"))
+                    //                    .ToList();
+                    //    picture[0].Image = GetPhotoFromPers(row["TABEL_NUMBER"].ToString());
+                    //    picture[0].Refresh();
+                    //    DevicesCounters[_i] = _counter;
+                    //}
                     _i++;
                 }
                 
                 
-                //_idEvent=int.Parse(row["id_reg"].ToString());
-                _idEvent = int.Parse(row["id"].ToString());
+                _idEvent=int.Parse(row["id_reg"].ToString());
+
+                //MySQL
+                //_idEvent = int.Parse(row["id"].ToString());
             }
 
             long tick = DateTime.Now.Ticks - _date.Ticks;
@@ -167,9 +182,11 @@ namespace EntrancesCheck.Forms
                      "652670," +
                      "656304," +
                      "38463";
-                     _devicesList = GetReadersList(devices);
-                        //GetInputReadersList(devices);
-                     _direction = 1;
+                    // _devicesList = GetReadersList(devices);
+                     //_direction = 1;
+
+                    _devicesList = GetInputReadersList(devices);
+                    
                     break;
 
                 case "MONITOR03": // 13-23 - выход
@@ -186,9 +203,9 @@ namespace EntrancesCheck.Forms
                      "663572," +
                      "71169," +
                      "8647";
-                     _devicesList = GetReadersList(devices);
-                     _direction = 1;
-                        //GetInputReadersList(devices);
+                    // _devicesList = GetReadersList(devices);
+                    // _direction = 1;
+                     _devicesList = GetInputReadersList(devices);
                     break;
 
                 case "MONITOR02": // 1-12 - вход
@@ -205,9 +222,11 @@ namespace EntrancesCheck.Forms
                      "652670," +
                      "656304," +
                      "38463";
-                    _devicesList = GetReadersList(devices);
-                    _direction = 2;
-                        //GetOutputReadersList(devices);
+                    //_devicesList = GetReadersList(devices);
+                    //_direction = 2;
+
+
+                    _devicesList = GetOutputReadersList(devices);
                     break;
 
                 case "MONITOR01": // 13-23 - вход
@@ -224,9 +243,11 @@ namespace EntrancesCheck.Forms
                      "663572," +
                      "71169," +
                      "8647";
-                    _devicesList = GetReadersList(devices);
-                    _direction = 2;
-                        //GetOutputReadersList(devices);
+                    //_devicesList = GetReadersList(devices);
+                    //_direction = 2;
+
+
+                    _devicesList = GetOutputReadersList(devices);
                     break;
 
                  case "MONITOR05": // 13-23 - вход
@@ -304,20 +325,26 @@ namespace EntrancesCheck.Forms
             Byte[] img;
             if (tabelId.IsNotEmptyOrNullString())
             {
-                
-           
-            DataTable dt = _pers.GetOraDataTableReader(string.Format(
 
-                "WITH AAA AS " +
-                "(SELECT to_number(tabelid), tb_sv_id  FROM skd.staff WHERE tabelid = {0} " +
-                "UNION " +
-                "SELECT tn, tb_sv_id FROM newpeoples WHERE tn = '{0}') " +
-                "SELECT t.photo FROM AAA " +
-                "    LEFT JOIN tb_photo t USING(tb_sv_id) ", tabelId));
+                // dbkserv
+                //DataTable dt = _pers.GetOraDataTableReader(string.Format(
+
+                //    "WITH AAA AS " +
+                //    "(SELECT to_number(tabelid), tb_sv_id  FROM skd.staff WHERE tabelid = {0} " +
+                //    "UNION " +
+                //    "SELECT tn, tb_sv_id FROM newpeoples WHERE tn = '{0}') " +
+                //    "SELECT t.photo FROM AAA " +
+                //    "    LEFT JOIN tb_photo t USING(tb_sv_id) ", tabelId));
 
 
-               
-            if (dt.IsNotEmptyOrNullDataTable())
+
+                DataTable dt = _pers.GetOraDataTableReader(string.Format(
+
+                    "select SID.PHOTO \r\n " +
+                    "from hr2.staff_info_data sid \r\n "+
+                    "where SID.PERSONAL_NO={0}", tabelId));
+
+                if (dt.IsNotEmptyOrNullDataTable())
             {
 
                     img = (Byte[])dt.Rows[0][0];
@@ -362,27 +389,36 @@ namespace EntrancesCheck.Forms
         {
             List<Device> readersList = new List<Device>();
 
-            DataTable dt = _mySql.GetDataTable(string.Format("SELECT t.id, t.name \n " +
-                                                             " FROM perco_4.device t \n " +
-                                                             " where t.id in ({0}) \n " +
-                                                             //"and  \n " +
-                                                              //  " \t t.resource_number=1 \n " +
-                                                             " order by t.name", devicesList));
-            
-            
-            
-            //DataTable dt = _skd.GetFbData(string.Format(
-            //    @"select t.INPUT_READER_CONFIG_ID, c.DISPLAY_NAME " +
-            //     "from areas_controllers t, configs_tree c " +
-            //     "where  t.CONFIG_TREE_ID in ({0}) " +
-            //        "and t.INPUT_READER_CONFIG_ID>0 " +
-            //        "and t.CONFIG_TREE_ID=c.ID_CONFIGS_TREE " +
-            //     "order by c.DISPLAY_NAME", devicesList));
+            //DataTable dt = _mySql.GetDataTable(string.Format("SELECT t.id, t.name \n " +
+            //                                                 " FROM perco_4.device t \n " +
+            //                                                 " where t.id in ({0}) \n " +
+            //                                                 //"and  \n " +
+            //                                                  //  " \t t.resource_number=1 \n " +
+            //                                                 " order by t.name", devicesList));
+
+
+
+            DataTable dt = _skd.GetFbData(string.Format(
+                @"select t.INPUT_READER_CONFIG_ID, c.DISPLAY_NAME " +
+                 "from areas_controllers t, configs_tree c " +
+                 "where  t.CONFIG_TREE_ID in ({0}) " +
+                    "and t.INPUT_READER_CONFIG_ID>0 " +
+                    "and t.CONFIG_TREE_ID=c.ID_CONFIGS_TREE " +
+                 "order by c.DISPLAY_NAME", devicesList));
             foreach (DataRow row in dt.Rows)
             {
-                readersList.Add(new Device() { DeviceId = int.Parse(row["id"].ToString()),
-                    DeviceName = row["name"].ToString()}
+                readersList.Add(new Device() 
+                    { 
+                        DeviceId = int.Parse(row["INPUT_READER_CONFIG_ID"].ToString()),
+                        DeviceName = row["DISPLAY_NAME"].ToString()}
                     );
+
+                //readersList.Add(new Device()
+                //    {
+                //    DeviceId = int.Parse(row["id"].ToString()),
+                //    DeviceName = row["name"].ToString()
+                //    }
+                //);
             }
             return readersList;
         }
@@ -392,21 +428,21 @@ namespace EntrancesCheck.Forms
             List<Device> readersList = new List<Device>();
 
 
-            DataTable dt = _mySql.GetDataTable(string.Format("SELECT t.id, t.name \n " +
-                                                             " FROM perco_4.device t \n " +
-                                                             " where t.id in ({0}) \n " +
-                                                             //" and  \n " +
-                                                             //" \t t.resource_number=2 \n " +
-                                                             " order by t.name", devicesList));
+            //DataTable dt = _mySql.GetDataTable(string.Format("SELECT t.id, t.name \n " +
+            //                                                 " FROM perco_4.device t \n " +
+            //                                                 " where t.id in ({0}) \n " +
+            //                                                 //" and  \n " +
+            //                                                 //" \t t.resource_number=2 \n " +
+            //                                                 " order by t.name", devicesList));
 
 
-            //DataTable dt = _skd.GetFbData(string.Format(
-            //    @"select t.OUTPUT_READER_CONFIG_ID, c.DISPLAY_NAME " +
-            //     "from areas_controllers t, configs_tree c " +
-            //     "where  t.CONFIG_TREE_ID in ({0}) " +
-            //        "and t.OUTPUT_READER_CONFIG_ID>0 " +
-            //        "and t.CONFIG_TREE_ID=c.ID_CONFIGS_TREE " +
-            //     "order by c.DISPLAY_NAME", devicesList));
+            DataTable dt = _skd.GetFbData(string.Format(
+                @"select t.OUTPUT_READER_CONFIG_ID, c.DISPLAY_NAME " +
+                 "from areas_controllers t, configs_tree c " +
+                 "where  t.CONFIG_TREE_ID in ({0}) " +
+                    "and t.OUTPUT_READER_CONFIG_ID>0 " +
+                    "and t.CONFIG_TREE_ID=c.ID_CONFIGS_TREE " +
+                 "order by c.DISPLAY_NAME", devicesList));
             foreach (DataRow row in dt.Rows)
             {
                 readersList.Add(new Device()

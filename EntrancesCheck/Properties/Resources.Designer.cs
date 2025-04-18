@@ -69,5 +69,15 @@ namespace EntrancesCheck.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap MTZ_DESIGN_логотип_14_04_2025 {
+            get {
+                object obj = ResourceManager.GetObject("MTZ_DESIGN_логотип_14_04_2025", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }
