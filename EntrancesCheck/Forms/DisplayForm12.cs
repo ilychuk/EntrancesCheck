@@ -18,7 +18,7 @@ namespace EntrancesCheck.Forms
         /// <summary>
         /// Код направления события. 1 - вход, 2 - выход
         /// </summary>
-        private int _direction = 0;
+        private int _direction;
 
         private readonly DateTime _date;
         /// <summary>
@@ -107,7 +107,13 @@ namespace EntrancesCheck.Forms
                          var picture = _groupBoxes[_i].Controls.OfType<PictureBox>()
                              .Where(c => c.Name.StartsWith("pictureBox"))
                              .ToList();
-                         picture[0].Image = GetPhotoFromPers(row["TABEL_ID"].ToString());
+
+                         Bitmap picBitmap = GetPhotoFromPers(row["TABEL_ID"].ToString());
+                         if (picBitmap !=null)
+                         {
+                             picture[0].Image = picBitmap;
+                         }
+                       // picture[0].Image = GetPhotoFromPers(row["TABEL_ID"].ToString());
                          picture[0].Refresh();
                          DevicesCounters[_i] = _counter;
                      }
@@ -182,9 +188,6 @@ namespace EntrancesCheck.Forms
                      "652670," +
                      "656304," +
                      "38463";
-                    // _devicesList = GetReadersList(devices);
-                     //_direction = 1;
-
                     _devicesList = GetInputReadersList(devices);
                     
                     break;
@@ -203,8 +206,6 @@ namespace EntrancesCheck.Forms
                      "663572," +
                      "71169," +
                      "8647";
-                    // _devicesList = GetReadersList(devices);
-                    // _direction = 1;
                      _devicesList = GetInputReadersList(devices);
                     break;
 
@@ -222,10 +223,6 @@ namespace EntrancesCheck.Forms
                      "652670," +
                      "656304," +
                      "38463";
-                    //_devicesList = GetReadersList(devices);
-                    //_direction = 2;
-
-
                     _devicesList = GetOutputReadersList(devices);
                     break;
 
@@ -243,30 +240,10 @@ namespace EntrancesCheck.Forms
                      "663572," +
                      "71169," +
                      "8647";
-                    //_devicesList = GetReadersList(devices);
-                    //_direction = 2;
-
-
                     _devicesList = GetOutputReadersList(devices);
                     break;
 
-                 case "MONITOR05": // 13-23 - вход
-                     devices =
-                         @"42097," +
-                         "45731," +
-                         "659938," +
-                         "49365," +
-                         "52999," +
-                         "56633," +
-                         "60267," +
-                         "63901," +
-                         "67535," +
-                         "663572," +
-                         "71169," +
-                         "8647";
-                     _devicesList = GetReadersList(devices);
-                     _direction = 1;
-                    break;
+                 
 
                 case "BSKD04": // 1-12 - вход
                     devices =
@@ -283,7 +260,6 @@ namespace EntrancesCheck.Forms
                         "71169," +
                         "8647";
                     _devicesList = GetInputReadersList(devices);
-                    _direction = 1;
                     break;
                 default:
                     _message.ShowError(@"Данный компьютер неизвестен");
@@ -326,35 +302,19 @@ namespace EntrancesCheck.Forms
             if (tabelId.IsNotEmptyOrNullString())
             {
 
-                // dbkserv
-                //DataTable dt = _pers.GetOraDataTableReader(string.Format(
+              DataTable dt = _pers.GetOraDataTableReader(string.Format(
 
-                //    "WITH AAA AS " +
-                //    "(SELECT to_number(tabelid), tb_sv_id  FROM skd.staff WHERE tabelid = {0} " +
-                //    "UNION " +
-                //    "SELECT tn, tb_sv_id FROM newpeoples WHERE tn = '{0}') " +
-                //    "SELECT t.photo FROM AAA " +
-                //    "    LEFT JOIN tb_photo t USING(tb_sv_id) ", tabelId));
-
-
-
-                DataTable dt = _pers.GetOraDataTableReader(string.Format(
-
-                    "select SID.PHOTO \r\n " +
-                    "from hr2.staff_info_data sid \r\n "+
-                    "where SID.PERSONAL_NO={0}", tabelId));
+                  "select SID.PHOTO \r\n " +
+                  "from hr2.staff_info_data sid \r\n " +
+                  "where SID.PERSONAL_NO={0}", tabelId));
 
                 if (dt.IsNotEmptyOrNullDataTable())
-            {
-
+                {
                     img = (Byte[])dt.Rows[0][0];
-
-
                     MemoryStream ms = new MemoryStream(img);
-
                     Bitmap bitmap = new Bitmap(ms);
                     return bitmap;
-            }
+                }
             }
             return null;
         }
@@ -380,10 +340,6 @@ namespace EntrancesCheck.Forms
             }
             return readersList;
         }
-
-
-
-
 
         public List<Device> GetInputReadersList(string devicesList)
         {
@@ -507,20 +463,6 @@ namespace EntrancesCheck.Forms
             }
         }
 
-        public List<int> GetOutputReadersList2(string devicesList)
-        {
-            List<int> readersList = new List<int>();
-            DataTable dt = _skd.GetFbData(string.Format(
-                @"select t.INPUT_READER_CONFIG_ID " +
-                 "from areas_controllers t " +
-                 "where  t.CONFIG_TREE_ID in ({0}) " +
-                 "and t.OUTPUT_READER_CONFIG_ID>0 " +
-                 "order by t.CONFIG_TREE_ID", devicesList));
-            foreach (DataRow row in dt.Rows)
-            {
-                readersList.Add(int.Parse(row["INPUT_READER_CONFIG_ID"].ToString()));
-            }
-            return readersList;
-        }
+       
     }
 }

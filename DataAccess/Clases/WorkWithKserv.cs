@@ -3,12 +3,10 @@ using System.Data;
 using DataAccess.Interfaces;
 using Oracle.ManagedDataAccess.Client;
 
-
 namespace DataAccess.Clases
 {
     public class WorkWithKserv : iWorkWithKserv
     {
-        //private static readonly OleDbConnection Connection = Connectors.GetOracleConnectionCrew();
         private static readonly OracleConnection Connection = Connectors.GetOracleConnection();
         public DataTable GetOraDataTable(string str)
         {
@@ -29,8 +27,6 @@ namespace DataAccess.Clases
             }
             catch (Exception)
             {
-                //WorkWithFile.WriteToFile(e.Message);
-                // MessageBox.Show(e.Message);
                 return null;
             }
             finally
@@ -72,9 +68,6 @@ namespace DataAccess.Clases
             command.CommandType = CommandType.Text;
             command.CommandText = str;
             command.InitialLONGFetchSize = -1;
-           
-            //  var oracleDataAdapter = new OracleDataAdapter();
-
 
             try
             {
@@ -84,8 +77,6 @@ namespace DataAccess.Clases
             }
             catch (Exception)
             {
-                //WorkWithFile.WriteToFile(e.Message);
-                // MessageBox.Show(e.Message);
                 return null;
             }
             finally

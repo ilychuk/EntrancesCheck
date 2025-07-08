@@ -35,6 +35,13 @@ namespace DataAccess.Clases
         //    return new OleDbConnection("Provider=MSDAORA;Data Source=pers;Persist Security Info=True;User ID=crew; Password=brivzoup38901");
         //}
 
+
+
+
+
+
+
+        // Новый сервер
         public static OracleConnection GetOracleConnection()
         {
             string connectString = string.Format(
